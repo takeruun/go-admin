@@ -1,0 +1,18 @@
+{ 
+  "go.useLanguageServer": true,
+  "[go]": {
+    "editor.snippetSuggestions": "none",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true
+    }
+  },
+  "gopls": {
+    // add parameter placeholders when completing a function.
+    "usePlaceholders": true, 
+
+    // Experimental settings
+    "completeUnimported": true, // autocomplete unimported packages
+    "deepCompletion": true     // enable deep completion
+  }
+}

@@ -1,0 +1,45 @@
+version: '3'
+services:
+  art:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/go/src/app
+      - pkg:/go/pkg
+    depends_on:
+      - db
+    ports:
+      - 3000:3000
+    environment:
+      DB_USER: root
+      DB_PASSWORD: password
+      DB_HOST: db
+      DB_NAME: art_dev
+    tty: true
+    stdin_open: true
+
+  db:
+    image: mysql:8.0.16
+    command: mysqld --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_USER: root
+      MYSQL_ROOT_PASSWORD: password
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  localstack:
+    image: localstack/localstack:0.12.16
+    ports:
+      - 4566:4566
+    environment:
+      SERVICES: s3
+      DEFAULT_REGION: ap-northeast-1
+      DATA_DIR: /tmp/localstack/data
+    volumes:
+      - localstack_data:/tmp/localstack
+
+volumes:
+  mysql-data:
+  pkg:
+  localstack_data:
