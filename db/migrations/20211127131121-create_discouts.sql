@@ -1,0 +1,13 @@
+
+-- +migrate Up
+CREATE TABLE IF NOT EXISTS discounts (
+  id int(15) NOT NULL AUTO_INCREMENT,
+  name VARCHAR(255) NOT NULL,
+  amount int(11) NOT NULL,
+  discount_type int(11) NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  deleted_at DATETIME DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+-- +migrate Down

@@ -6,7 +6,8 @@ WORKDIR /go/src/app
 
 RUN go get golang.org/x/tools/gopls@latest && \ 
   go get github.com/rubenv/sql-migrate/... && \
-  go get github.com/pilu/fresh
+  go get github.com/pilu/fresh && \
+  go get github.com/golang/mock/mockgen
 
 COPY go.mod go.sum ./
 

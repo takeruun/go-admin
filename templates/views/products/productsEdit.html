@@ -1,0 +1,139 @@
+{{define "css"}}
+<!-- Select2 -->
+<link rel="stylesheet" href="/plugins/select2/css/select2.min.css">
+<link rel="stylesheet" href="/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
+{{end}}
+{{define "content"}}
+<div class="content-wrapper">
+  <!-- Content Header (Page header) -->
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1>{{.productTypeName}}編集</h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item"><a href="/products/{{.productType}}">{{.productTypeName}}一覧</a></li>
+            <li class="breadcrumb-item active">{{.productTypeName}}編集</li>
+          </ol>
+        </div>
+      </div>
+    </div><!-- /.container-fluid -->
+  </section>
+  <!-- Main content -->
+  <section class="content">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-12">
+          <div class="card card-primary">
+            <div class="card-header">
+              <h3 class="card-title">{{.productTypeName}}情報</h3>
+
+              <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                  <i class="fas fa-minus"></i>
+                </button>
+              </div>
+            </div><!-- /.card-header -->
+            <div class="card-body">
+              <form action="/products/{{.productType}}/{{.product.ID}}/update" method="post" id="form">
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="categoryId">カテゴリ</label>
+                      <select class="form-control select2 categories-select" style="width: 100%;" id="categories-select"
+                        name="categoryId">
+                        <option value="{{.product.CategoryID}}">{{.product.Category.Name}}</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label for="name">{{.productTypeName}}名</label>
+                      <input type="txt" class="form-control" placeholder="{{.productTypeName}}名" name="name"
+                        value="{{.product.Name}}">
+                    </div>
+                    <div class="form-group">
+                      <label for="price">価格</label>
+                      <input type="number" class="form-control" placeholder="1000" min=0 name="price"
+                        value="{{.product.Price}}">
+                    </div>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary float-sm-right">編集</button>
+              </form>
+            </div><!-- /.card-body -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+<!-- Select2 -->
+<script src="/plugins/select2/js/select2.full.min.js"></script>
+<!-- jquery-validation -->
+<script src="/plugins/jquery-validation/jquery.validate.min.js"></script>
+<script src="/plugins/jquery-validation/additional-methods.min.js"></script>
+<script>
+  $(function () {
+    $('#categories-select').select2({
+      ajax: {
+        url: '/api/categories',
+        data: function (params) {
+          return {
+            name: params.term,
+          }
+        },
+        processResults: function (data, params) {
+          const results = data.map(item => {
+            return {
+              id: item.id,
+              value: item.id,
+              text: `${item.name}`,
+            };
+          });
+          return {
+            results: results,
+          }
+        }
+      },
+      placeholder: 'カテゴリで絞る'
+    });
+    $('#form').validate({
+      rules: {
+        categoryId: {
+          required: true,
+        },
+        name: {
+          required: true,
+        },
+        price: {
+          required: true,
+        },
+      },
+      messages: {
+        categoryId: {
+          required: 'カテゴリを選択してください'
+        },
+        name: {
+          required: 'コース名を入力してください'
+        },
+        price: {
+          required: '価格を入力してください'
+        }
+      },
+      errorElement: 'span',
+      errorPlacement: function (error, element) {
+        error.addClass('invalid-feedback');
+        element.closest('.form-group').append(error);
+      },
+      highlight: function (element, errorClass, validClass) {
+        $(element).addClass('is-invalid');
+      },
+      unhighlight: function (element, errorClass, validClass) {
+        $(element).removeClass('is-invalid');
+      }
+    });
+  });
+</script>
+{{end}}

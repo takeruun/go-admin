@@ -1,0 +1,15 @@
+
+-- +migrate Up
+CREATE TABLE IF NOT EXISTS products (
+  id bigint(20) AUTO_INCREMENT,
+  name VARCHAR(255),
+  price INT(11),
+  product_type INT(11),
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  deleted_at DATETIME DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+-- +migrate Down
+DROP TABLE IF EXISTS products;

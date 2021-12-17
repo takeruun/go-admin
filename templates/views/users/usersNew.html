@@ -1,0 +1,349 @@
+{{define "css"}}
+<!-- iCheck for checkboxes and radio inputs -->
+<link rel="stylesheet" href="/plugins/icheck-bootstrap/icheck-bootstrap.min.css">
+<!-- daterange picker -->
+<link rel="stylesheet" href="/plugins/daterangepicker/daterangepicker.css">
+<!-- Select2 -->
+<link rel="stylesheet" href="/plugins/select2/css/select2.min.css">
+<link rel="stylesheet" href="/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
+{{end}}
+{{define "content"}}
+<div class="content-wrapper">
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1>お客様作成</h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item"><a href="/users">お客様一覧</a></li>
+            <li class="breadcrumb-item active">お客様作成</li>
+          </ol>
+        </div>
+      </div>
+    </div><!-- /.container-fluid -->
+  </section>
+  <section class="content">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card card-primary">
+          <div class="card-header">
+            <h3 class="card-title">お客様情報</h3>
+
+            <div class="card-tools">
+              <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                <i class="fas fa-minus"></i>
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <form action="/users/create" method="post" id="form">
+              <div class="row">
+                <div class="col-6 form-group">
+                  <label for="familyName">姓</label>
+                  <input type="text" class="form-control" placeholder="山田" name="familyName">
+                </div>
+                <div class="col-6 form-group">
+                  <label for="givenName">名</label>
+                  <input type="text" class="form-control" placeholder="太郎" name="givenName">
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-6 form-group">
+                  <label for="familyNameKana">セイ</label>
+                  <input type="text" class="form-control" placeholder="ヤマダ" name="familyNameKana">
+                </div>
+                <div class="col-6 form-group">
+                  <label for="givenNameKana">メイ</label>
+                  <input type="text" class="form-control" placeholder="タロウ" name="givenNameKana">
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-6 form-group">
+                  <label for="postalCode">郵便番号</label>
+                  <input type="text" class="form-control" data-inputmask='"mask": "999-9999"' data-mask
+                    name="postalCode" onKeyUp="AjaxZip3.zip2addr(this,'','prefectureId','address1');">
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-6 form-group">
+                  <label for="prefectureId">都道府県</label>
+                  <select id="prefectureId" class="form-control custom-select" name="prefectureId">
+                    <option selected disabled value="">Select one</option>
+                    {{range $i,$pref := .prefectures}}
+                    <option value="{{$pref.value}}">{{$pref.ja}}</option>
+                    {{end}}
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="address1">市区町村</label>
+                <input type="text" class="form-control" placeholder="市区町村" name="address1">
+              </div>
+              <div class="form-group">
+                <label for="address2">番地</label>
+                <input type="text" class="form-control" placeholder="番地" name="address2">
+              </div>
+              <div class="form-group">
+                <label for="address3">マンション等</label>
+                <input type="text" class="form-control" placeholder="マンション" name="address3">
+              </div>
+              <div class="row">
+                <div class="col-6 form-group">
+                  <label for="phoneNumber">携帯電話番号</label>
+                  <input type="text" class="form-control" placeholder="090-0000-0000" name="phoneNumber">
+                </div>
+                <div class="col-6 form-group">
+                  <label for="homePhoneNumber">自宅電話番号</label>
+                  <input type="text" class="form-control" placeholder="0123-00-0000" name="homePhoneNumber">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="email">メールアドレス</label>
+                <input type="email" class="form-control" placeholder="sample@example.com" name="email" id="email">
+              </div>
+              <div class="row">
+                <div class="col-6">
+                  <label for="gender">性別</label>
+                  <div class="form-group clearfix">
+                    <div class="icheck-primary d-inline">
+                      <input type="radio" id="gnederMela" name="gender" checked="" value="1">
+                      <label for="gnederMela">男性</label>
+                    </div>
+                    <div class="icheck-primary d-inline">
+                      <input type="radio" id="genderFemela" name="gender" value="2">
+                      <label for="genderFemela">女性</label>
+                    </div>
+                    <div class="icheck-primary d-inline">
+                      <input type="radio" id="genderNone" name="gender" value="3">
+                      <label for="genderNone">選択なし</label>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6 form-group">
+                  <label for="birthday">生年月日</label>
+                  <div class="input-group date" id="reservationdate" data-target-input="nearest">
+                    <input type="text" class="form-control datetimepicker-input" data-target="#reservationdate"
+                      name="birthday" />
+                    <div class="input-group-append" data-target="#reservationdate" data-toggle="datetimepicker">
+                      <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-6 form-group">
+                  <label for="occupation">職業</label>
+                  <select id="occupation" class="form-control custom-select" name="occupation">
+                    <option selected disabled value="">Select one</option>
+                    {{range $i,$occupation := .occupations}}
+                    <option value="{{$occupation.value}}">{{$occupation.ja}}</option>
+                    {{end}}
+                  </select>
+                </div>
+                <div class="col-6 form-group">
+                  <label for="firstVistDate">初来店日</label>
+                  <div class="input-group date" id="reservationdatetime" data-target-input="nearest">
+                    <input type="text" class="form-control datetimepicker-input" data-target="#reservationdatetime"
+                      name="firstVistDate" />
+                    <div class="input-group-append" data-target="#reservationdatetime" data-toggle="datetimepicker">
+                      <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-6">
+                  <div class="form-group">
+                    <label for="familyUserId">ご家族</label>
+                    <select class="form-control select2" style="width: 100%;" name="familyUserId" id="families">
+                      <option selected disabled>家族を選択</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label for="familyRelationship">続柄</label>
+                  <select id="paymentMethod" class="form-control custom-select" name="familyRelationship">
+                    <option selected disabled>続柄選択</option>
+                    {{range $i,$relationship := .relationships}}
+                    <option value="{{$relationship.value}}">{{$relationship.ja}}</option>
+                    {{end}}
+                  </select>
+                </div>
+              </div>
+              <div class="form-group form-group">
+                <label for="memo">Memo</label>
+                <textarea class="form-control" rows="3" placeholder="memo ..." name="memo"></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary float-sm-right">作成</button>
+            </form>
+          </div>
+          <!-- /.card-body -->
+        </div>
+        <!-- /.card -->
+      </div>
+    </div>
+  </section>
+</div>
+<!-- InputMask -->
+<script src="/plugins/moment/moment.min.js"></script>
+<script src="/plugins/inputmask/jquery.inputmask.min.js"></script>
+<!-- date-range-picker -->
+<script src="/plugins/daterangepicker/daterangepicker.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/ja.min.js"></script>
+<!-- Tempusdominus Bootstrap 4 -->
+<script src="/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js"></script>
+<!-- jquery-validation -->
+<script src="/plugins/jquery-validation/jquery.validate.min.js"></script>
+<script src="/plugins/jquery-validation/additional-methods.min.js"></script>
+<script src="https://ajaxzip3.github.io/ajaxzip3.js"></script>
+<!-- Select2 -->
+<script src="/plugins/select2/js/select2.full.min.js"></script>
+<script>
+  $(function () {
+    $('[data-mask]').inputmask()
+
+    //Date picker
+    $('#reservationdate').datetimepicker({
+      format: 'YYYY-MM-DD',
+      language: 'ja'
+    });
+    //Date and time picker
+    $('#reservationdatetime').datetimepicker({
+      format: 'YYYY-MM-DD H:mm',
+      icons: { time: 'far fa-clock' }
+    });
+
+    $.validator.addMethod(
+      "regex",
+      function (value, element, regexp) {
+        var check = false;
+        return this.optional(element) || regexp.test(value);
+      },
+    );
+    $('#form').validate({
+      rules: {
+        email: {
+          required: true,
+          email: true,
+        },
+        familyName: {
+          required: true
+        },
+        givenName: {
+          required: true
+        },
+        familyNameKana: {
+          required: true,
+          regex: /^[ァ-ヶー　]+$/,
+        },
+        givenNameKana: {
+          required: true,
+          regex: /^[ァ-ヶー　]+$/,
+        },
+        postalCode: {
+          required: true,
+        },
+        prefectureId: {
+          required: true,
+        },
+        address1: {
+          required: true,
+        },
+        address2: {
+          required: true,
+        },
+        phoneNumber: {
+          required: true,
+        },
+        birthday: {
+          required: true,
+        }
+      },
+      messages: {
+        email: {
+          required: 'メールアドレスを入力してください',
+          email: '有効なメールアドレスを入力してください',
+        },
+        familyName: {
+          required: '姓を入力してください',
+        },
+        givenName: {
+          required: '名を入力してください'
+        },
+        familyNameKana: {
+          required: 'セイ（カタカナ）を入力してください',
+          regex: 'カタカナを入力してください',
+        },
+        givenNameKana: {
+          required: 'メイ（カタカナ）を入力してください',
+          regex: 'カタカナを入力してください',
+        },
+        postalCode: {
+          required: '郵便番号を入力してください',
+        },
+        prefectureId: {
+          required: '都道府県を選択してください',
+        },
+        address1: {
+          required: '市区町村を入力してください',
+        },
+        address2: {
+          required: '番地を入力してください',
+        },
+        phoneNumber: {
+          required: '電話番号を入力してください',
+        },
+        birthday: {
+          required: '生年月日を入力してください',
+        }
+      },
+      errorElement: 'span',
+      errorPlacement: function (error, element) {
+        error.addClass('invalid-feedback');
+        element.closest('.form-group').append(error);
+      },
+      highlight: function (element, errorClass, validClass) {
+        $(element).addClass('is-invalid');
+      },
+      unhighlight: function (element, errorClass, validClass) {
+        $(element).removeClass('is-invalid');
+      }
+    });
+
+    //Initialize Select2 Elements
+    $('.select2').select2({
+      ajax: {
+        url: '/api/users',
+        data: function (params) {
+          let name = $('input[name="familyName"]').val()
+          document.getElementsByClassName('select2-search__field').innerText = name
+          if (params.term == null) {
+            return {
+              familyName: name,
+            }
+          }
+          return {
+            familyName: params.term,
+          }
+        },
+        processResults: function (data, params) {
+          const results = data.map(item => {
+            return {
+              id: item.id,
+              value: item.id,
+              text: `${item.familyName}${item.givenName}`,
+            };
+          });
+          return {
+            results: results,
+          }
+        }
+      }
+    });
+  });
+</script>
+{{end}}

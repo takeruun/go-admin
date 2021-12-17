@@ -1,0 +1,426 @@
+{{define "css"}}{{end}}
+{{define "content"}}
+<div class="content-wrapper">
+  <!-- Content Header (Page header) -->
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6"></div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item active">Top</li>
+          </ol>
+        </div>
+      </div>
+    </div><!-- /.container-fluid -->
+  </section>
+
+  <!-- Main content -->
+  <section class="content">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">本日の予約</h3>
+              <div class="card-tools">
+                <div id="clute-pager"></div>
+              </div>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body p-0">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>カルテID</th>
+                    <th>お客様</th>
+                    <th>コース名</th>
+                    <th>来店時間</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div><!-- /.card-body -->
+          </div><!-- /.card -->
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <div class="card card-info">
+            <div class="card-header">
+              <h3 class="card-title">日別売上推移</h3>
+              <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                  <i class="fas fa-minus"></i>
+                </button>
+                <button type="button" class="btn btn-tool" data-card-widget="remove">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="d-flex">
+                <p class="ml-auto d-flex flex-column text-right">
+                  <select class="custom-select" name="select-chart-type" id="select-chart-type">
+                    <option value="0" selected>day</option>
+                    <option value="1">month</option>
+                  </select>
+                </p>
+              </div>
+              <div class="d-flex" id="sales-data">
+                {{range $i, $data := .saleDataDay}}
+                <p class="d-flex flex-column">
+                  <span class="text-bold text-lg">
+                    {{$data.ConvertPrice $data.TotalPrice}}
+                  </span>
+                  <span>本日の売上</span>
+                </p>
+                <p class="ml-auto d-flex flex-column text-right">
+                  {{ if $data.Up }}
+                  <span class="text-success">
+                    <i class="fas fa-arrow-up"></i> {{$data.Rate}}%
+                  </span>
+                  {{ else }}
+                  <span class="text-danger">
+                    <i class="fas fa-arrow-down"></i> {{$data.Rate}}%
+                  </span>
+                  {{ end }}
+                  <span class="text-muted">昨日</span>
+                </p>
+                {{end}}
+              </div>
+              <div class="chart">
+                <canvas id="lineChart" style="
+                    min-height: 250px;
+                    height: 250px;
+                    max-height: 250px;
+                    max-width: 100%;">
+                </canvas>
+              </div>
+            </div><!-- /.card-body -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /.container-fluid -->
+  </section>
+  <!-- /.content -->
+</div>
+
+<div class="modal fade" id="modal-default">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="overlay">
+        <i class="fas fa-2x fa-sync fa-spin"></i>
+      </div>
+      <div class="modal-header">
+        <h4 class="modal-title"></h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body"></div>
+      <div class="modal-footer justify-content-between">
+        <button type="button" class="btn btn-default" data-dismiss="modal">閉じる</button>
+        <button type="button" class="btn btn-primary order-update">更新</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<!-- ChartJS -->
+<script src="/plugins/chart.js/Chart.min.js"></script>
+<script src="/custom/pagination/pagination.min.js"></script>
+<script>
+  function drawChart(areaChartData, id) {
+    var areaChartOptions = {
+      maintainAspectRatio: false,
+      responsive: true,
+      legend: {
+        display: false,
+      },
+      scales: {
+        xAxes: [{
+          gridLines: {
+            display: false,
+          },
+        }],
+        yAxes: [{
+          gridLines: {
+            display: true,
+          },
+          ticks: {
+            min: 0,
+          },
+        }],
+      },
+    };
+
+    var lineChartCanvas = $(id).get(0).getContext('2d');
+    var lineChartOptions = $.extend(true, {}, areaChartOptions);
+    var lineChartData = $.extend(true, {}, areaChartData);
+    lineChartData.datasets[0].fill = false;
+    lineChartOptions.datasetFill = false;
+
+    window.lineChart = new Chart(lineChartCanvas, {
+      type: 'bar',
+      data: lineChartData,
+      options: lineChartOptions,
+    });
+  }
+
+  function getCourses(orderItems) {
+    var course = '';
+    orderItems.forEach((orderItem, key) => {
+      if (orderItem.Product.productType == 1) {
+        course += orderItem.Product.name;
+      }
+      if ((orderItems.length - 1) != key) course += ' / '
+    });
+
+    return course;
+  }
+
+  function showOrders() {
+    $('#clute-pager').pagination({
+      dataSource: '/api/orders/search?searchType=todayReservation',
+      pageSize: 5,
+      locator: 'items',
+      position: 'top',
+      ajax: {
+        beforeSend: function () {},
+      },
+      callback: function (data, pagination) {
+        var content = '';
+        data.forEach((order) => {
+          var course = getCourses(order.OrderItems);
+          var dateOfVisit = new Date(order.dateOfVisit);
+
+          content += `<tr>
+              <td>${order.id}</td>
+              <td>${order.User.familyName}${order.User.givenName}様</td>
+              <td>${course}</td>
+              <td>${dateOfVisit.getHours()}:${dateOfVisit.getMinutes()}</td>
+              <td>
+                <button type="button" class="btn btn-primary btn-sm modal-compelete" data-toggle="modal" data-target="#modal-default">
+                  <input type="hidden" value="${order.id}" />
+                  完了✓
+                </button>
+              </td>
+            </tr>`;
+        });
+        $('tbody').html(content);
+
+        $('.modal-compelete').on('click', function (e) {
+          var orderId = $(e.currentTarget).children('input').val();
+          $('.modal-body').append(`<input type="hidden" value=${orderId} />`);
+        });
+      },
+    });
+
+  }
+
+  $(function () {
+    showOrders();
+
+    $('.modal').on('show.bs.modal', function () {
+      var orderId = $('.modal-body').children('input').val();
+
+      $.ajax({
+        url: `api/orders/${orderId}`,
+        method: 'GET',
+        dataType: 'json',
+        success: function (order) {
+          $('.overlay').css('display', 'none');
+          $('.modal-title').html(
+            `${order.User.familyName}${order.User.givenName}様 / ${getCourses(order.OrderItems)}`
+          );
+
+          $('.modal-body').html(`
+            <input type="hidden" value=${orderId} />
+            <div class="row">
+              <div class="col-6">
+                <label for="status">ステータス</label>
+                <select id="status" class="form-control custom-select" name="status"></select>
+              </div>
+              <div class="col-6">
+                <label for="paymentMethod">支払い方法</label>
+                <select id="paymentMethod" class="form-control custom-select" name="paymentMethod"></select>
+              </div>
+            </div>
+          `);
+
+          "{{range $i,$status := .statuses}}"
+          v = "{{$status.value}}";
+          j = "{{$status.ja}}";
+          if (v == "2") {
+            $('#status').append($('<option selected>').html(j).val(v));
+          } else {
+            $('#status').append($('<option>').html(j).val(v));
+          }
+          "{{end}}"
+
+          "{{range $i,$paymentMethod := .paymentMethods}}"
+          v = "{{$paymentMethod.value}}";
+          j = "{{$paymentMethod.ja}}";
+          $('#paymentMethod').append($('<option>').html(j).val(v));
+          "{{end}}"
+        }
+      });
+    });
+
+    $('.order-update').on('click', function () {
+      var orderId = $('.modal-body').children('input').val();
+      var data = {
+        status: parseInt($('#status').val()),
+        paymentMethod: parseInt($('#paymentMethod').val()),
+      };
+
+      $.ajax({
+        url: `api/orders/${orderId}`,
+        type: 'PUT',
+        contentType: 'application/json',
+        dataType: 'json',
+        data: JSON.stringify(data),
+      }).done(function (order) {
+        showOrders();
+        $('.modal').modal('hide');
+      }).fail(function (err) {
+        console.log(err);
+      })
+    });
+
+    $('.modal').on('hidden.bs.modal', function () {
+      $('.overlay').removeAttr('style');
+      $('.modal-body').html('');
+    });
+
+    var areaChartData = {
+      labels: [],
+      datasets: [{
+        label: 'Digital Goods',
+        backgroundColor: 'rgba(60,141,188,0.9)',
+        borderColor: 'rgba(60,141,188,0.8)',
+        pointRadius: false,
+        pointColor: '#3b8bba',
+        pointStrokeColor: 'rgba(60,141,188,1)',
+        pointHighlightFill: '#fff',
+        pointHighlightStroke: 'rgba(60,141,188,1)',
+        data: []
+      }]
+    };
+
+    $.ajax({
+      url: '/api/orders/sales_by_day',
+      method: 'GET',
+      success: function (data) {
+        var days = [];
+        var prices = [];
+        data.salesData.forEach(item => {
+          var day = item.day.split('-');
+          days.push(`${day[1]}/${day[2]}`);
+          prices.push(item.total_price);
+        });
+
+        areaChartData.labels = days;
+        areaChartData.datasets[0].data = prices;
+        drawChart(areaChartData, '#lineChart');
+      },
+    });
+
+    $('#select-chart-type').change(async function (e) {
+      if (e.target.value == 0) {
+        await $.ajax({
+          url: '/api/orders/sales_by_day',
+          method: 'GET',
+          success: function (data) {
+            var saleScore = '';
+            if (data.salesResult.up) {
+              saleScore = `
+                <span class="text-success">
+                  <i class="fas fa-arrow-up"></i> ${data.salesResult.rate}%
+                </span>
+              `;
+            } else {
+              saleScore = `
+                <span class="text-danger">
+                  <i class="fas fa-arrow-down"></i> ${data.salesResult.rate}%
+                </span>
+              `;
+            }
+
+            $('#sales-data').html(`
+              <p class="d-flex flex-column">
+                <span class="text-bold text-lg">
+                  ${data.salesResult.total_price.toLocaleString('ja-JP',{style:'currency', currency: 'JPY'})}
+                </span>
+                <span>本日の売上</span>
+              </p>
+              <p class="ml-auto d-flex flex-column text-right">
+                ${saleScore}
+                <span class="text-muted">昨日</span>
+              </p>
+            `);
+            var days = [];
+            var prices = [];
+            data.salesData.forEach(item => {
+              var day = item.day.split('-');
+              days.push(`${day[1]}/${day[2]}`);
+              prices.push(item.total_price);
+            });
+            areaChartData.labels = days;
+            areaChartData.datasets[0].data = prices;
+          },
+        });
+      } else if (e.target.value == 1) {
+        await $.ajax({
+          url: '/api/orders/sales_by_month',
+          method: 'GET',
+          success: function (data) {
+            var saleScore = '';
+            if (data.salesResult.up) {
+              saleScore = `
+                <span class="text-success">
+                  <i class="fas fa-arrow-up"></i> ${data.salesResult.rate}%
+                </span>
+              `;
+            } else {
+              saleScore = `
+                <span class="text-danger">
+                  <i class="fas fa-arrow-down"></i> ${data.salesResult.rate}%
+                </span>
+              `;
+            }
+
+            $('#sales-data').html(`
+              <p class="d-flex flex-column">
+                <span class="text-bold text-lg">
+                  ${data.salesResult.total_price.toLocaleString('ja-JP',{style:'currency', currency: 'JPY'})}
+                </span>
+                <span>今月の売上</span>
+              </p>
+              <p class="ml-auto d-flex flex-column text-right">
+                ${saleScore}
+                <span class="text-muted">先月</span>
+              </p>
+            `);
+            var days = [];
+            var prices = [];
+            data.salesData.forEach((item) => {
+              var day = item.day.split('-');
+              days.push(`${day[0]}/${day[1]}`);
+              prices.push(item.total_price);
+            });
+            areaChartData.labels = days;
+            areaChartData.datasets[0].data = prices;
+          },
+        });
+      }
+      window.lineChart.destroy();
+      drawChart(areaChartData, '#lineChart');
+    });
+  });
+
+</script>
+{{end}}

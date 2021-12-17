@@ -1,16 +1,60 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"app/infrastructure"
+	"log"
+	"net"
+	"net/http/fcgi"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+)
 
 func main() {
-	router := gin.Default()
-	router.LoadHTMLGlob("templates/*.html")
-	router.Static("/plugins", "./templates/plugins")
-	router.Static("/dist", "./templates/dist")
+	const SOCK = "./socket/server.sock"
+	time.Local = time.FixedZone("JST", 9*60*60)
 
-	router.GET("/", func(ctx *gin.Context) {
-		ctx.HTML(200, "index3.html", gin.H{})
-	})
+	db := infrastructure.NewDB()
+	awsS3 := infrastructure.NewAwsS3()
+	r := infrastructure.NewRouting(db, awsS3)
+	r.SetMiddleware()
 
-	router.Run(":3000")
+	if os.Getenv("GIN_MODE") == "release" {
+		r.SetReleaseMode()
+		production(r)
+	} else {
+		develop(r)
+	}
+}
+
+func develop(r *infrastructure.Routing) {
+	r.Run()
+}
+
+func production(r *infrastructure.Routing) {
+	const SOCK = "./socket/server.sock"
+
+	sig := make(chan os.Signal)
+	signal.Notify(sig, os.Interrupt)
+	signal.Notify(sig, syscall.SIGTERM)
+	signal.Notify(sig, syscall.SIGINT)
+
+	l, err := net.Listen("unix", SOCK)
+	if err != nil {
+		log.Fatal("listen error:", err)
+	}
+	if err := os.Chmod(SOCK, 0777); err != nil {
+		log.Fatal("error:", err)
+	}
+
+	go func() {
+		fcgi.Serve(l, r.Gin)
+	}()
+
+	<-sig
+
+	if err := os.Remove(SOCK); err != nil {
+		log.Fatal("socket file remove error:", err)
+	}
 }

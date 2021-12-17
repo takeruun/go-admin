@@ -1,0 +1,28 @@
+{{define "pagenation"}}
+<div class="card-footer clearfix">
+  <ul class="pagination pagination-sm m-0 float-right" id="paging">
+  </ul>
+</div>
+<script>
+  $(function () {
+    var pageNumber = "{{.pageNumber}}"
+    pageNumber = parseInt(pageNumber)
+    if(pageNumber == 0) pageNumber = 1;
+    var pageNumbers = "{{.pageNumbers}}"
+
+    for (let i = 1; i <= pageNumbers; i++) {
+      var html = '';
+      if(pageNumber == i){
+        html = `<li class="page-item active"><a class="page-link" href="${location.pathname+'?pageNumber='+i}">${i}</a></li>`;
+      }else if(i == 1 && pageNumber != 1){
+        html = `<li class="page-item"><a class="page-link" href="${location.pathname+'?pageNumber='+(pageNumber-1)}">&laquo;</a></li>`;
+      }else if(i == pageNumbers && pageNumber != pageNumbers){
+        html = `<li class="page-item"><a class="page-link" href="${location.pathname+'?pageNumber='+(pageNumber+1)}">&raquo;</a></li>`;
+      }else {
+        html = `<li class="page-item"><a class="page-link" href="${location.pathname+'?pageNumber='+i}">${i}</a></li>`;
+      }
+      $('#paging').append(html);
+    }
+  });
+</script>
+{{end}}
